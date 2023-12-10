@@ -3,4 +3,11 @@ const nextConfig = {
   reactStrictMode: true,
 }
 
-module.exports = nextConfig
+// next.config.js
+module.exports = {
+  ...nextConfig, // Include other configurations if needed
+
+  images: {
+    domains: ['localhost', 'i.ibb.co'], // Add the domain/hostnames of your images
+  },
+};
