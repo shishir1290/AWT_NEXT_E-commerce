@@ -18,10 +18,10 @@ export default function Products({brandName}) {
       </div>
       <div className='flex p-10  gap-3 justify-start' style={{width: "100%", overflowBlock:"hidden" }}> 
       {/* justify-center content-center lg:justify-between lg:content-start */}
-        <ProductCard productName="PC" productImage = {LenovoPc123}/>
+        {/* <ProductCard productName="PC" productImage = {LenovoPc123}/>
         <ProductCard productName="PC" productImage = {LenovoPc124}/>
         <ProductCard productName="PC" productImage = {TpLinkRouter556}/>
-        <ProductCard productName="PC" productImage = {TpLinkRouter560}/>
+        <ProductCard productName="PC" productImage = {TpLinkRouter560}/> */}
         
       </div>
     </div>

@@ -1,9 +1,35 @@
+import axios from 'axios';
 import Image from 'next/image'
+import Link from 'next/link';
+import { useRouter } from 'next/router';
 import React from 'react'
 import { HiOutlineDotsHorizontal } from "react-icons/hi";
 
 
-export default function ProductCard({productName, productImage}) {
+export default function ProductCard({product,sellerID}) {
+  const router = useRouter();
+  //const {productName, productImage} = props;
+
+  //console.log("=========",product)
+
+  const {id, name, price, productImage} = product;
+  const {sellerId} = sellerID;
+  const handleDelete = async(productId) => {
+    const tokenString = localStorage.getItem('authForEcomerce');    
+    const token = JSON.parse(tokenString).accessToken;
+      
+
+     // fetch er jaygay axios use korbo 
+     const response  =await axios.delete(`http://localhost:3000/seller/product/deleteProduct/${productId}`,
+     {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+     })
+     if(response.data == "Successful"){
+      router.push(`/seller/${sellerId}/products`) // seller er id dynamically pass korte hobe
+     }
+  }
   return (
     <>
     <div  className=" border-2 rounded-lg" style={{width: "auto"}}>
@@ -23,11 +49,15 @@ export default function ProductCard({productName, productImage}) {
             </div>
         </figure>
         <div className="card-body">
-            <h5 className="card-title" style={{width:"30px",height:"40px", fontSize:"18px", display:"flex", justifyContent : "space-between"}} >
-              {/* // i dont know Link use korte hobe kina  */}
-              <a  style={{textAlign: "left" }}  target="_blank" href="/product/@productId">
-                LenovoPc123 vfvofdmvofdmvofidvdsdsddsd
-              </a>
+            <h5 className="card-title flex justify-between" style={{width:"auto",height:"40px", fontSize:"18px"}} >
+              {/* , display:"flex", justifyContent : "space-between" */}
+              <Link href={`/product/[productId]`} as={`/product/${id}`} >
+              {name}
+              </Link>
+              {/* <a   target="_blank" href={`/product/${id}`}>
+                
+                {name}
+              </a> */}
               {/* // ekhane amra dropdown button ta add korte pari */}
                 {/* //////////////////////// */}
                 <div className="dropdown">
@@ -39,8 +69,13 @@ export default function ProductCard({productName, productImage}) {
                     <ul tabIndex={0} className="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow bg-base-100 rounded-box w-52">
                         {/* if (Session["userType"] == "Seller" && product.sellerId == Convert.ToInt32(Session["userid"])) */}
                              {/* { */}
-                                 <li><a className="dropdown-item" href="Product/updateOneProductDetails/@product.id">Update Details</a></li>
-                                 <li><a className="dropdown-item text-danger" href="Product/deleteProduct/@product.id">Delete</a></li>
+                                 <li><a className="dropdown-item" href={`Product/updateOneProductDetails/${id}`}>Update Details</a></li>
+                                 {/* <li><a className="dropdown-item text-danger" href={`Product/deleteProduct/${id}`}>Delete</a></li> */}
+                                 <li> <button onClick={() => handleDelete(id)}>Delete</button></li> {/* // handleDelete er product id ta pass korte hobe */}
+                                 {/* 
+                                            Delete Button er onClick e method thakbe .. sheta delete korbe apatoto
+                                 🔰 Delete button e click korle ekta Modal open hobe ... jeta te delete er confirmation message thakbe
+                                 and delete button thakbe */}
 
                              {/* } */}
                              {/* if (Session["userType"] == "User") */}
@@ -67,7 +102,7 @@ export default function ProductCard({productName, productImage}) {
 
                      <div className="flex">
                          <h6>৳</h6>
-                         <h6>220 &nbsp;&nbsp;</h6>
+                         <h6>{price} &nbsp;&nbsp;</h6>
                          &nbsp;
                          &nbsp;
                          &nbsp;

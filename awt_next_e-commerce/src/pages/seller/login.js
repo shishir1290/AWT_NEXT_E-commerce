@@ -4,6 +4,7 @@ import { useAuth } from "../../utils/authcontext";
 
 import { useRouter } from 'next/router';
 import api from "@/utils/api";
+import axios from "axios";
 
 // Link ta o niye ashte hobe .. // ekta Error page design korte hobe .. shetao niye ashte hobe ..
 function Login() {
@@ -20,8 +21,42 @@ function Login() {
 
     const { email, password } = formData; 
 
+    // useEffect(()=>{
+    //     // ekhane ki amra 
+    //     // state er email and password er moddhe e.target[].value set korte hobe
+    // },[])
+
+
+    
+    
+
     
     const onChange = (e) => {
+        // onChange e validation korte hobe .. 
+        if(e.target.name === "email"){
+            if(!e.target.value){
+                setError("Email Can not be empty");
+            }
+            else if (!e.target.value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)) {
+                setError("Please provide valid email format");
+                
+            }else{
+                setError("");
+            }
+        }
+
+        if(e.target.name === "password"){
+            if(!e.target.value){
+                setError("Password Can not be empty");
+                
+            }
+            else if (e.target.value < 4) {
+                setError("Password must be at least 4 characters");
+            }else{
+                setError("");
+            }
+        }
+
         setFormData((prevState) => ({
             ...prevState,
             [e.target.name]: e.target.value, // ei ta xoss way to play with form data
@@ -30,21 +65,46 @@ function Login() {
 
     // Dave Gray eta ke asynchronous function boltese ... ⏳ 28:08
     const  handleSubmit = async (e) => {
+        console.log(formData);
         e.preventDefault();
+        if (!e.target[0].value && !e.target[1].value) {
+            console.log(e.target[0].value  + " " + e.target[1].value)
+            setError("Email And Password Can not be empty");
+            return;
+        }
+        if (!e.target[0].value) {
+            console.log(e.target[0].value  + " " + e.target[1].value)
+            setError("Email Can not be empty");
+            return;
+        }
+        if (!e.target[1].value) {
+            console.log(e.target[1].value  + " " + e.target[1].value)
+            setError("Password Can not be empty");
+            return;
+        }
+        if (!e.target[1].value.length > 3) {
+            setError("Password must be at least 4 characters");
+            return;
+        }
+        // i need regular expression to check email validation ..
+        if (!e.target[0].value.match(/^([\w.%+-]+)@([\w-]+\.)+([\w]{2,})$/i)) {
+            setError("Please provide valid email format");
+            return;
+        }
         
         setError("");
 
-        try{
-            const response = await api.post('http://localhost:3000/seller/sellerLoginJWT',{
+       
+
+        try{ 
+            
+            const response = await axios.post('http://localhost:3000/seller/sellerLoginJWT',{
               //sellerEmailAddress: formData.email,
               // sellerPassword: formData.password
               sellerEmailAddress : e.target[0].value,
               sellerPassword : e.target[1].value
-            },
-            {
-              headers: { 'Content-Type': 'application/json' },
-              //withCredentials: true
             }
+            
             );
             if(response){
                
@@ -107,6 +167,7 @@ function Login() {
                         method="post"
                         class=" h-auto w-auto my-auto"
                         onSubmit={handleSubmit}
+                        noValidate
                     >
                         <h1 className="py-4 text-2xl text-center ">
                             Login Form For Seller
@@ -128,7 +189,7 @@ function Login() {
                                 class=" block  p-2.5   w-[365px]   bg-gray-700 border border-gray-600 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                 // resize-y
                                 placeholder="Type email here..."
-                                required
+                                
                                 onChange={onChange}
                             />
 
@@ -143,7 +204,7 @@ function Login() {
                                 class=" block  p-2.5  w-[365px]  bg-gray-700 border border-gray-600 text-gray-900 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                 // resize-y
                                 placeholder="Type password here..."
-                                required
+                                
                                 onChange={onChange}
                             />
 

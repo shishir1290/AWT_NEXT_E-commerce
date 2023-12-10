@@ -24,22 +24,16 @@ const { getUser, checkUser } = useAuth();
   
 
     useEffect(() => {
-        //console.log("In navbar.js useEffect 🟢", user)
-        //const token = getUser();
         const tokenString = localStorage.getItem('authForEcomerce');
-        const token = JSON.stringify(tokenString);
-        setUser(token);
         setUser1(JSON.parse(tokenString));
-
-        //console.log("In navbar.js useEffect 🟢 user : ", user1)
-        if(token){
-            getUsersInfo();
-        }
-
-        const u = JSON.parse(user);
-        //console.log("u1 : 🔰🔗", JSON.parse(tokenString)?.accessToken)
-        //console.log("u2 : 🔰🔗", user1?.accessToken)
+        // const u = JSON.parse(user);
         
+        
+        //const token = JSON.stringify(tokenString);
+        //setUser(token);
+        // if(token){
+        //     getUsersInfo();
+        // }
     },[])
 
   async function getUsersInfo(){
@@ -48,7 +42,7 @@ const { getUser, checkUser } = useAuth();
       const response = await api.get(14);
       //console.log("response: ", response);
       setData(response.data);
-      console.log("=====getUsersInfo====",response.data);
+    //   console.log("=====getUsersInfo====",response.data);
       
     }catch(error){
       console.log("error:", error);
@@ -190,16 +184,19 @@ useEffect(() => {
             </div>
             <div>
                 
-                <a href={`/seller/${user1?.userId}`} className='ml-2 text-xl'>
-                    {/* userName */}
-                    {user1?.user?.userName}
-                </a>
+                <Link href={`/seller/${user1?.userId}`} className=' w-auto ml-3 h-7  leading-6 rounded-sm text-PureWhite pl-2 pr-2  hover:border-b-2'>
+
+                        <span >
+                        {user1?.user?.userName}
+                        </span>
+                    
+                </Link>
             </div>
             {/* // logout logo  */}
 
             {user1?.userId  && (
                 <Nav  path="/" styleProps="group-hover:w-20">
-                    {/* /logout */}
+                    
                     <span onClick={logout}>
                     Logout
                     </span>

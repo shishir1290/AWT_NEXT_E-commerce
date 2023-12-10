@@ -5,7 +5,18 @@ import { useRouter } from 'next/router'
 import LenovoPc124 from '../../../../../public/images/Products/LenovoPc124.jpg';
 import Image from 'next/image';
 
-export default function ProductProfileInfo() {
+export default function ProductProfileInfo({productDetails}) {
+  
+  if(productDetails != null){
+    const {id, name, details, productImage, rating, price, availableQuantity, lowestQuantityToStock, createdAt} = productDetails ;
+    //details
+    //productImage
+    //rating
+    // availableQuantity
+    // lowestQuantityToStock
+    // createdAt
+  }
+
   return (
     <div className="grid grid-cols-12 ">
             
@@ -33,23 +44,27 @@ export default function ProductProfileInfo() {
                   </div>
                     
                   <div class='pt-[10px] '>
-                    <h1>Product Name </h1>
+                    <h1>{productDetails?.name}</h1>
                       
                   </div>
                   <div class='pt-[10px] '>
-                      Category Name, Brand Name ... 
+                  {productDetails?.category} {productDetails?.brand}
+                      {/* Category Name, Brand Name ...  */}
                   </div>
                   
                   
                   <div class='pt-[10px] '>
-                      Product Price 
+                      {/* Product Price  */}
+                      {productDetails?.price}
                   </div>
 
                   <div class='pt-[10px] '>
                       Product Tags...  
                   </div>
-                  <div class='pt-[10px] '>
-                      Add To Cart , Place Order Buttons ... 
+                  <div class='pt-[10px] flex  '>
+                      <button className='btn '>Add To Cart</button>
+                      <button className='btn ml-3'>Place Order</button>
+                      {/* Add To Cart , Place Order Buttons ...  */}
                   </div>
             </div>
             

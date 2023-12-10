@@ -3,7 +3,10 @@ import LenovoPc124 from '../../../../public/images/Products/LenovoPc124.jpg';
 import Image from 'next/image';
 
 
-export default function Conversation() {
+export default function Conversation({conversation}) {
+  const {id, sellerName, sellerEmailAddress, lastMessage} = conversation;
+  // last message er time o send korte hobe back-end theke  🔰🔰
+  // seller er image send korte hobe back-end theke 🔰🔰
   return (
     <>
         {/* conversation */}
@@ -20,13 +23,13 @@ export default function Conversation() {
                 alt="Picture of user"
               />
               <div>
-                <h1 className='ml-3 '>Mohammad Bin Ab. Jalil Sheakh</h1>
+                <h1 className='ml-3 '>{sellerName + "--"+id}</h1>
               </div>
               </div>
 
               <div className='rounded-md  w-auto h-auto bg-PrimaryColorDark'>
-                      Last Message.. 
-                         .....time..
+                      {lastMessage}
+                         {/* .....time.. */}
               </div>
                 
           </a>

@@ -1,6 +1,6 @@
 import Navbar from '@/layout/navbar';
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import LenovoPc124 from '../../../../public/images/Products/LenovoPc124.jpg';
 
@@ -14,11 +14,36 @@ import { FaLink } from "react-icons/fa";
 import Banner from '@/component/home/Banner';
 import SellerProfile from '@/component/seller/profile/SellerProfile';
 import ReviewCard from '@/component/common/review/reviewCard';
+import axios from 'axios';
 
 
 export default function SellerProducts() {
   const router = useRouter();
   const {sellerId} = router.query;
+ const [reviews, setReviews] = useState(null);
+  
+  useEffect(() => {
+    // ei seller er under e joto review ase .. DB theke pull kore niye ashte hobe
+    
+    const tokenString = localStorage.getItem('authForEcomerce'); 
+
+    const getAllReviewForSeller = async(token) =>{
+      const response = await axios.get(`http://localhost:3000/seller/getAllReview/14`,{
+        headers:{
+          Authorization: `bearer ${token}`
+        }
+      });
+      if(response.data){
+        setReviews(response.data);
+        console.log(response.data)
+      }
+    }
+
+    getAllReviewForSeller(JSON.parse(tokenString).accessToken);
+
+    
+  },[])
+
   return (
     <>
     <br/>

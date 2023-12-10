@@ -1,6 +1,6 @@
 import Navbar from '@/layout/navbar';
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 import LenovoPc124 from '../../../../public/images/Products/LenovoPc124.jpg';
 import Image from 'next/image';
@@ -12,7 +12,19 @@ import MainCategory from '@/layout/mainCategory';
 import Banner from '@/component/home/Banner';
 import SubNavbarOfSellerProfile from '../subNav/SubNavbarOfSellerProfile';
 
-export default function SellerProfile() {
+export default function SellerProfile(props) {
+  //<SellerProfile shopName={sellerData?.shopName} offlineShopAddress={sellerData?.offlineShopAddress} shopGoogleMapLink={sellerData?.googleMapLocation}/>
+        
+  
+  const {shopName,offlineShopAddress,shopGoogleMapLink, userId } =  props;
+
+  const [tokenString, setTokenString] = useState(null);
+
+  useEffect(() => {
+    const tokenString = localStorage.getItem('authForEcomerce');    
+    setTokenString(JSON.parse(tokenString));
+  },[])
+
   // const router = useRouter();
   // const {sellerId} = router.query;
   return (
@@ -39,21 +51,21 @@ export default function SellerProfile() {
                 />
                 {/* /////////// */}
                 {/* // Shop Name */}
-                <h1 className=''>XYZ Shop</h1>
+                <h1 className=''>{shopName}</h1>
                 {/* ml-[80px] mt-3 */}
                 {/* // offline Shop Address Logo And Details  */}
                 <div className='flex'>
                     <MdOutlineLocationCity  className=''/>
                     {/* ml-[80px] mt-1 mr-2 */}
-                    <h1>location Details</h1> 
+                    <h1>{offlineShopAddress}</h1> 
                     </div>
                     
                     {/* // google map link Logo And Details  */}
                     <div className='flex'>
                     <FaMapLocationDot className=''/>
                     {/* ml-[80px]  mt-1 mr-2 */}
-                      Click this link 
-                      <a target='_blank' href=''><FaLink  className='mt-1 ml-2'/></a>
+                      Google Map Link 
+                      <a target='_blank' href={shopGoogleMapLink} ><FaLink  className='mt-1 ml-2'/></a>
                     
                 </div>
               {/* ////////////// */}
@@ -72,7 +84,7 @@ export default function SellerProfile() {
             
         </div>
         {/* // ekhon amra product er subNavbar er design korbo  */}
-        <SubNavbarOfSellerProfile/>
+        <SubNavbarOfSellerProfile userId={tokenString?.userId}/>
         
     </>
     

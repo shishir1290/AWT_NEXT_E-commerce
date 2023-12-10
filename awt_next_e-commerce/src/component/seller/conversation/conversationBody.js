@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import LenovoPc124 from '../../../../public/images/Products/LenovoPc124.jpg';
 import Image from 'next/image';
 import SingleMessage from './SingleReceiverMessage';
@@ -6,9 +6,63 @@ import SingleReceiverMessage from './SingleReceiverMessage';
 import SingleSenderMessage from './SingleSenderMessage';
 import SingleReceiver from './SingleReceiver';
 import SingleSender from './SingleSender';
+import axios from 'axios';
 
 
-export default function ConversationBody() {
+export default function ConversationBody({loggedInUserEmail, selectedConversation}) {
+  // ekta  conversation e click korle shei conversation er shob message gula dekhabe .. 
+  // so, shob message gula load korte hobe ..  show All Message of a conversation
+   console.log("selected conversation id : ", selectedConversation?.id);
+   const [conversationId, setConversationId] = useState(null);
+   const [messageList, setMessageList] = useState([]); // from DB
+   
+
+   useEffect(() => {
+
+    let id = selectedConversation?.id;
+    console.log("id::::", id)
+      if(id == undefined){
+        setConversationId(3);
+        console.log("conversationId in if ::: ",conversationId)
+        //id = 3;
+      }else if(id == null){
+        setConversationId(3);
+        console.log("conversationId in else if::: ",conversationId)
+        //id = 3;
+      }
+      else{
+        console.log("conversationId in else::: ",conversationId)
+        setConversationId(selectedConversation?.id);
+        //id = selectedConversation?.id;
+      }
+    // ekhon db theke selected conversation er shob message gula pull kore niye ashte hobe ..
+    // jehetu conversation id ta amar kase ase 
+
+    const tokenString = localStorage.getItem('authForEcomerce');
+    const token = JSON.parse(tokenString).accessToken;
+    const loggedInUserEmail = JSON.parse(tokenString).user.userEmailAddress;
+
+    const getConversationByConversationIDFromDB = async(token) =>{
+      
+        const response  = await axios.get(`http://localhost:3000/seller/message/showAllMessageOfAConversation/${conversationId}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        }
+        );
+        if(response.data){
+          console.log(loggedInUserEmail)
+          console.log("response.data from conversationBody : ", response.data);
+          setMessageList(response.data);
+        }
+      
+      };
+
+      getConversationByConversationIDFromDB(token);
+   
+   
+  },[conversationId])
   return (
     <>
     
@@ -20,10 +74,35 @@ export default function ConversationBody() {
       {/* style={{width: "100%", overflowBlock:"hidden" }} */}
         {/* /////////////////design bug/////// */}
 
+        {
+          messageList.map((message, index) =>(
+            <>
+               {
+                // message.senderEmailAddress == loggedInUserEmail ? (
+                //     <SingleSender  message="sender 4" date="12/21/12"/>
+                // ) :(
+                //     <SingleReceiverMessage  message="sender 1" date="12/21/12"/>
+                // )
+
+
+                message.senderEmail == loggedInUserEmail ? (
+                    <SingleSender  message={message.message} date={message.timeStamps}/>
+                ) :
+                  message.receiverEmail == loggedInUserEmail ? (
+                    <SingleReceiverMessage   message={message.message} date={message.timeStamps}/>
+                ):(
+                  <></>
+                )
+
+               }
+            </>
+          ))
+        }
+
         
-        <SingleSender  message="sender 4" date="12/21/12"/>
+        {/* <SingleSender  message="sender 4" date="12/21/12"/>
         
-        <SingleReceiverMessage  message="sender 1" date="12/21/12"/>
+        <SingleReceiverMessage  message="sender 1" date="12/21/12"/> */}
         
         
         
