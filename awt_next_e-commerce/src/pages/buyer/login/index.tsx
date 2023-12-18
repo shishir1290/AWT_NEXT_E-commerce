@@ -16,6 +16,7 @@ const Login = () => {
     error: "",
   });
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const { email, password } = formdata;
 
@@ -45,7 +46,13 @@ const Login = () => {
   };
 
   const setSession = (access_token: string) => {
-    localStorage.setItem("access_token", access_token);
+    sessionStorage.setItem("access_token", access_token);
+
+    if (rememberMe) {
+      localStorage.setItem("access_token", access_token);
+    } else {
+      localStorage.removeItem("access_token");
+    }
   };
 
   // const setSessionId = (id: number) => {
@@ -81,8 +88,6 @@ const Login = () => {
         { timeout: 5000 }
       );
 
-      console.log("Login response", res.data.access_token);
-
       if (res.data.access_token) {
         setSession(res.data.access_token);
         router.push("/buyer/home");
@@ -90,7 +95,6 @@ const Login = () => {
         setErrors({ ...errors, error: "Invalid email id and password" });
       }
     } catch (error) {
-      console.log(error);
       setErrors({ ...errors, error: "Invalid email id and password" });
     }
   };
@@ -99,12 +103,15 @@ const Login = () => {
     setShowPassword(!showPassword);
   };
 
+  const handleRememberMeChange = () => {
+    setRememberMe(!rememberMe);
+  };
+
   return (
     <Layout>
       <div className="bg-gray-100 min-h-screen pt-20">
         <form method="POST" onSubmit={handleSubmit}>
           <h1 className="text-4xl font-bold text-center">Login page</h1>
-
           <div className="mt-8 max-w-md mx-auto relative z-0">
             {errors.error && (
               <p className="text-red-500 text-sm mt-1 font-bold">
@@ -112,7 +119,6 @@ const Login = () => {
               </p>
             )}
           </div>
-
           <div className="mt-8 max-w-md mx-auto relative z-0">
             <input
               className={`block py-2.5 px-0 w-full text-sm text-black bg-transparent border-0 border-b-2 border-gray-300 appearance-none  focus:outline-none focus:ring-0 focus:border-blue-600 peer ${
@@ -135,7 +141,6 @@ const Login = () => {
               <p className="text-red-500 text-sm mt-1">{errors.email}</p>
             )}
           </div>
-
           <div className="mt-8 max-w-md mx-auto relative z-0">
             <input
               className={`block py-2.5 px-0 w-full text-sm text-black bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer${
@@ -172,7 +177,23 @@ const Login = () => {
               <p className="text-red-500 text-sm mt-1">{errors.password}</p>
             )}
           </div>
+          {/* //------------------------------------------------------------------------------ */}
+          {/* Remember me checkbox */}
+          <div className="mt-8 max-w-md mx-auto relative z-0">
+            <input
+              type="checkbox"
+              id="remember"
+              name="remember"
+              checked={rememberMe}
+              onChange={handleRememberMeChange}
+              className="h-4 w-4 text-blue-500 focus:ring-blue-400 border-gray-300 rounded cursor-pointer focus:outline-none transition duration-300 ease-in-out transform hover:scale-110"
+            />
+            <label htmlFor="remember" className="ml-2 text-sm text-gray-600">
+              Remember me
+            </label>
+          </div>
 
+          {/* //------------------------------------------------------------------------------ */}
           <div className="mt-8 max-w-md mx-auto">
             <button
               type="submit"

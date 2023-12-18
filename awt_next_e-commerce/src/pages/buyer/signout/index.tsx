@@ -8,7 +8,8 @@ const Index = () => {
     // Check if running on the client side
     if (typeof window !== 'undefined') {
       // Access localStorage
-      if (localStorage.getItem('access_token') !== null) {
+      if (localStorage.getItem('access_token') !== null || sessionStorage.getItem('access_token') !== null) {
+        sessionStorage.removeItem('access_token');
         localStorage.removeItem('access_token');
         router.push('/buyer/login');
       } else {

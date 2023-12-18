@@ -6,9 +6,13 @@ import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import Layout from "@/components/layout";
+import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import { send } from "process";
 
 const Signup = () => {
   const router = useRouter();
+  const [showPassword, setShowPassword] = useState(false);
+  
   const [formdata, setFormdata] = useState({
     firstname: "",
     lastname: "",
@@ -107,6 +111,9 @@ const Signup = () => {
       setValidationErrors(validationErrors);
       return;
     }
+    if (formdata) {
+      // const resMail = sendMail(email);
+    }
 
     try {
       // Use FormData to handle file uploads
@@ -135,29 +142,27 @@ const Signup = () => {
         }
       );
 
-      if (res.data.success) {
-        console.log(res.data.message);
-        console.log("1");
+      if (res.data) {
         router.push("/buyer/login");
       } else {
-        console.log("2");
         setError(res.data.message);
-        console.log(res.data.message);
       }
     } catch (error) {
       // Axios error handling
       if ((error as any).isAxiosError && (error as any).response) {
-        console.log("3");
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         setError(`Error: ${(error as any).response.data.message}`);
       } else {
-        console.log("4");
         // Something happened in setting up the request that triggered an Error
         console.error("Error:", (error as any).message);
         setError("An error occurred during signup.");
       }
     }
+  };
+
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -349,7 +354,9 @@ const Signup = () => {
             )}
           </div>
           {/* Password */}
-          <div className="mt-8 max-w-md mx-auto">
+
+          {/* Password */}
+          <div className="mt-8 max-w-md mx-auto relative">
             <label className="text-sm font-bold text-gray-700 tracking-wide">
               Password
             </label>
@@ -359,12 +366,20 @@ const Signup = () => {
                   ? "border-red-500"
                   : ""
               }`}
-              type="password"
+              type={showPassword ? "text" : "password"}
               placeholder="Password"
               name="password"
               value={password}
               onChange={onChange}
             />
+            <div className="absolute inset-y-0 right-0 pr-3 flex items-center">
+              {/* Eye icon for toggling password visibility */}
+              <FontAwesomeIcon
+                icon={showPassword ? faEye : faEyeSlash}
+                className="text-gray-500 cursor-pointer"
+                onClick={togglePasswordVisibility}
+              />
+            </div>
             {(validationErrors as { password?: string }).password && (
               <p className="text-red-500 text-sm mt-1">
                 {(validationErrors as { password?: string }).password}
@@ -400,7 +415,7 @@ const Signup = () => {
               </label>
             </div>
             <p className="mt-1 text-sm text-black" id="file_input_help">
-              SVG, PNG, JPG, or GIF (MAX. 800x400px).
+              PNG, JPG, JPEG 
             </p>
           </div>
 
@@ -408,7 +423,7 @@ const Signup = () => {
           <div className="mt-10 max-w-md mx-auto">
             <button
               type="submit"
-              className="w-full px-4 py-2 tracking-wide font-bold text-green-800 hover:text-white border border-green-700 bg-emerald-200 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 rounded-lg text-sm text-center me-2 mb-2 dark:border-green-500 dark:text-green-500 dark:hover:text-white dark:hover:bg-green-600 dark:focus:ring-green-800"
+              className="w-full px-4 py-2 tracking-wide font-bold text-black hover:text-white border-2 border-green-700 bg-emerald-200 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 rounded-lg text-sm text-center me-2 mb-2 "
             >
               Signup
             </button>

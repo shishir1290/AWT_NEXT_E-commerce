@@ -4,6 +4,10 @@ import axios from "axios";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
+import Cookies from "js-cookie";
+import { useCart } from "./cartContext";
+import { useRouter } from 'next/router';
+
 
 interface NavbarLink {
   url: string;
@@ -15,7 +19,16 @@ export interface NavbarProps {
   links: NavbarLink[];
 }
 
+interface CartItem {
+  id: number;
+  name: string;
+  quantity: number;
+  price: number;
+  image: string; // URL to the product image
+}
+
 const Navbar: React.FC<NavbarProps> = ({ links }) => {
+  const router = useRouter();
   // State variables
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -24,6 +37,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
   const [userFirstName, setUserFirstName] = useState<string | null>(null);
   const [userLastName, setUserLastName] = useState<string | null>(null);
   const [userImage, setUserImage] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [userInfo, setUserInfo] = useState<{
     buyerimage: string;
     buyerFirstName: string;
@@ -33,25 +47,27 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
+  const { cartCount, updateCartCount } = useCart();
+
   //---------------------------------------------------------------------------------
 
   const fetchData = async () => {
-    const accessToken = localStorage.getItem("access_token");
+    let accessToken;
 
-    if (!accessToken) {
-      // Handle the case where the access token is not available
-      console.error("Access token not found.");
-      return;
-    }
-
-    console.log("Access Token:", accessToken);
+    accessToken =
+      sessionStorage.getItem("access_token") ||
+      localStorage.getItem("access_token");
 
     try {
       let decodedToken;
 
       try {
-        decodedToken = jwt.decode(accessToken);
-        console.log("Decoded Token:", decodedToken);
+        if (accessToken) {
+          decodedToken = jwt.decode(accessToken);
+        } else {
+          console.error("Access token is null.");
+          return;
+        }
       } catch (verifyError) {
         console.error("Error during token verification:", verifyError);
         return;
@@ -61,24 +77,16 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
 
       const buyerEmail = (decodedToken as JwtPayload).email as string;
       const id = parseInt((decodedToken as jwt.JwtPayload)?.sub || "", 10);
+
       const buyerFirstName = (decodedToken as JwtPayload).firstName as string;
       const buyerLastName = (decodedToken as JwtPayload).lastName as string;
-      const buyerimage = (decodedToken as JwtPayload).buyerimage as string;
+      const buyerimage = `http://localhost:3000/buyer/getImages/${id}`;
 
       setUserEmail(buyerEmail);
       setUserId(id);
       setUserFirstName(buyerFirstName);
       setUserLastName(buyerLastName);
       setUserImage(buyerimage);
-
-      // if (buyerEmail && id) {
-      //   try {
-      //     const res = await axios.get(`http://localhost:3000/buyer/${id}`);
-      //     setUserInfo(res.data); // Set user information directly
-      //   } catch (error) {
-      //     console.error("Error fetching user information:", error);
-      //   }
-      // }
     } catch (error) {
       console.error("Error decoding token:", (error as Error).message);
     }
@@ -90,17 +98,8 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
     fetchData();
   }, []);
 
-  useEffect(() => {
-    console.log(userInfo);
-  }, [userInfo]);
-
-  // Construct the user profile picture URL
-  const imageUrl = userImage
-    ? `http://localhost:3000/uploads/${userImage}`
-    : "";
-
   const userProfilePicture =
-    imageUrl || "https://www.svgrepo.com/download/192244/man-user.svg";
+    userImage || "https://www.svgrepo.com/download/192244/man-user.svg";
 
   // Toggle handlers
   const handleToggle = () => {
@@ -133,7 +132,71 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
     };
   }, []);
 
-  // Return JSX for the Navbar component
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
+  // Function to handle cart button click
+  useEffect(() => {
+    getCartItemsFromCookies();
+  }, []);
+
+  // Function to handle cart button click
+  const handleCartButtonClick = () => {
+    // Toggle the sidebar state
+    setIsSidebarOpen(!isSidebarOpen);
+    // Fetch updated cart items from cookies
+    getCartItemsFromCookies();
+  };
+
+  const getCartItemsFromCookies = (): CartItem[] => {
+    const existingCart = Cookies.get("cart")
+      ? JSON.parse(Cookies.get("cart")!)
+      : [];
+
+    console.log("Existing Cart:", existingCart);
+
+    return existingCart;
+  };
+
+  useEffect(() => {
+    const cartItems = getCartItemsFromCookies();
+    setCartItems(cartItems);
+    updateCartCount(cartItems.length);
+  }, []);
+
+  const handleQuantityChange = (itemId: number, newQuantity: number) => {
+    if (newQuantity <= 0) {
+      // Remove the item from the cart
+      const updatedCartItems = cartItems.filter((item) => item.id !== itemId);
+
+      // Update the cart items in cookies
+      Cookies.set("cart", JSON.stringify(updatedCartItems));
+
+      // Update the cart items in state
+      setCartItems(updatedCartItems);
+    } else {
+      // Update the cart items in state
+      const updatedCartItems = cartItems.map((item) =>
+        item.id === itemId ? { ...item, quantity: newQuantity } : item
+      );
+
+      // Update the cart items in cookies
+      Cookies.set("cart", JSON.stringify(updatedCartItems));
+
+      // Update the cart items in state
+      setCartItems(updatedCartItems);
+    }
+  };
+
+  const handleSearch = () => {
+    const searchInput = document.getElementById(
+      "default-search"
+    ) as HTMLInputElement;
+    console.log(searchInput.value);
+
+    // Use the router to navigate to the search result page
+    router.push(`/products/searchResult/${searchInput.value}`);
+  };
+
   return (
     <nav className="bg-gray-800 sticky top-0 w-full z-50">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
@@ -153,7 +216,13 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
         {/* Search bar and Links */}
         <div className="w-full mt-2 md:w-9/12 md:mt-0 md:flex md:justify-between">
           {/* Search Form */}
-          <form className="w-full md:w-6/12">
+          <form
+            className="w-full md:w-6/12"
+            onSubmit={(e) => {
+              e.preventDefault(); // Prevent the default form submission
+              handleSearch(); // Call the handleSearch function when the form is submitted
+            }}
+          >
             <div className="relative">
               <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
                 <svg
@@ -309,19 +378,219 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
             )}
 
             {/* Create cart button */}
-            <div className="md:ml-4 pl-12">
+            <div className="md:ml-4 pl-12 relative">
+              {/* Use a button to trigger the sidebar */}
               <button
                 type="button"
                 className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
                 id="cart-button"
-                onClick={() => {
-                  // Add your logic to open the cart or navigate to the cart page
-                  console.log("Cart button clicked!");
-                }}
+                onClick={handleCartButtonClick}
               >
                 <span className="text-4xl">🛒</span>
+                <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 p-1 text-xs font-semibold text-white bg-red-500 rounded-full">
+                  {cartCount ?? 0}
+                </span>
               </button>
             </div>
+
+            {/* Sidebar */}
+            {isSidebarOpen && (
+              <div className="fixed top-0 right-0 h-full bg-slate-200 w-1/4 shadow-lg overflow-y-auto">
+                <div className="p-4">
+                  {/* ----------------------------------------------------------------------- */}
+                  <div className="flex justify-between">
+                    <h2 className="text-2xl font-semibold mb-4">
+                      Shopping Cart
+                    </h2>
+                    <button
+                      type="button"
+                      onClick={() => setIsSidebarOpen(false)}
+                    >
+                      <svg
+                        className="w-6 h-6 "
+                        aria-hidden="true"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 18 16"
+                      >
+                        <path
+                          stroke="currentColor"
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M1 8h11m0 0L8 4m4 4-4 4m4-11h3a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-3"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                  {/* -------------------------------------------------------------------------------------- */}
+                  {cartItems.length > 0 ? (
+                    <table className="w-full">
+                      <thead>
+                        <tr>
+                          <th className="text-left">Product</th>
+                          <th className="text-center">Quantity</th>
+                          <th className="text-center">Price</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {cartItems.map((item) => (
+                          <tr key={item.id} className="mb-4 border-b pb-4">
+                            <td className="flex items-center">
+                              <Image
+                                src={`http://localhost:3000/product/getImages/${item.id}`}
+                                alt={item.name}
+                                width={40}
+                                height={40}
+                                className="mr-4 rounded-md"
+                              />
+                              <div className="flex-grow">
+                                <div className="font-semibold">{item.name}</div>
+                              </div>
+                            </td>
+                            <td className="text-center">
+                              <div className="flex items-center space-x-2">
+                                <button
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      item.id,
+                                      item.quantity - 1
+                                    )
+                                  }
+                                  className="text-white bg-gray-600 hover:bg-gray-700 px-2 py-1 rounded-full focus:outline-none focus:ring focus:border-blue-300"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M20 12H4"
+                                    />
+                                  </svg>
+                                </button>
+                                <span className="text-lg font-bold">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  onClick={() =>
+                                    handleQuantityChange(
+                                      item.id,
+                                      item.quantity + 1
+                                    )
+                                  }
+                                  className="text-white bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded-full focus:outline-none focus:ring focus:border-blue-300"
+                                >
+                                  <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    className="h-5 w-5"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth="2"
+                                      d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                                    />
+                                  </svg>
+                                </button>
+                              </div>
+                            </td>
+                            <td className="text-center">
+                              {item.quantity * item.price}{" "}
+                              <span className="text-2xl font-bold">৳</span>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  ) : (
+                    <p className="text-gray-600">Your cart is empty.</p>
+                  )}
+                  <hr className="w-full h-1 mx-auto my-4 bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
+                  {/* Subtotal, VAT, and Total Price */}
+                  <table className="w-full">
+                    <tbody>
+                      <tr className="text-gray-700 my-4">
+                        <td className="font-bold text-xl">Sub Price:</td>
+                        <td className="mx-28"></td>
+                        <td className="text-right text-xl font-bold">
+                          {cartItems.reduce(
+                            (subTotal, item) =>
+                              subTotal + item.quantity * item.price,
+                            0
+                          )}{" "}
+                          <span className="text-2xl font-bold">৳</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3}>
+                          <hr />
+                        </td>
+                      </tr>
+                      <tr className="text-gray-700 my-4">
+                        <td className="font-bold text-xl">5% VAT:</td>
+                        <td className="mx-28"></td>
+                        <td className="text-right text-xl font-bold">
+                          {cartItems.reduce(
+                            (VAT, item) =>
+                              VAT + item.quantity * item.price * 0.05,
+                            0
+                          )}{" "}
+                          <span className="text-2xl font-bold">৳</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3}>
+                          <hr />
+                        </td>
+                      </tr>
+                      <tr className="text-gray-700 my-4">
+                        <td className="font-bold text-xl">Total Price:</td>
+                        <td className="mx-28"></td>
+                        <td className="text-right text-xl font-bold">
+                          {cartItems.reduce(
+                            (total, item) => total + item.quantity * item.price,
+                            0
+                          ) +
+                            cartItems.reduce(
+                              (VAT, item) =>
+                                VAT + item.quantity * item.price * 0.05,
+                              0
+                            )}{" "}
+                          <span className="text-2xl font-bold">৳</span>
+                        </td>
+                      </tr>
+                      <tr>
+                        <td colSpan={3}>
+                          <hr />
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <hr className="w-full h-1 mx-auto bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
+                  {/* Continue Shopping and Checkout buttons inside the sidebar */}
+                  <div className="fixed bottom-0 right-0 bg-slate-200 p-4">
+                    <Link href="/orders/checkout">
+                    <button
+                      type="button"
+                      className="bg-blue-500 text-white px-40 py-2 mr-5 rounded-md hover:bg-gray-900"
+                    >
+                      Checkout
+                    </button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
