@@ -6,7 +6,7 @@ import Layout from "@/components/layout";
 
 
 
-const Login = () => {
+const Signin = () => {
   const router = useRouter();
   const [formdata, setFormdata] = useState({
     email: "",
@@ -17,6 +17,7 @@ const Login = () => {
     password: "",
     error: "",
   });
+  
   const [showPassword, setShowPassword] = useState(false);
 
   const { email, password } = formdata;
@@ -33,13 +34,13 @@ const Login = () => {
   };
 
   const validatePassword = (value: string) => {
-    // Password length validation (at least 8 characters)
-    const isLengthValid = value.length >= 8;
+    // Password length validation (at least 6 characters)
+    const isLengthValid = value.length >= 6;
 
     // Password content validation (at least 2 letters, 2 numbers, and 2 symbols)
     const containsLetters = /[a-zA-Z]/.test(value);
     const containsNumbers = /\d/.test(value);
-    const containsSymbols = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+    const containsSymbols = /^(?=(?:[^a-zA-Z]*[a-zA-Z]){2})(?=[^0-9]*[0-9])(?=[^A-Z]*[A-Z])(?=[^\s]*\W).{6,}$/;
 
     return (
       isLengthValid && containsLetters && containsNumbers && containsSymbols
@@ -47,11 +48,11 @@ const Login = () => {
   };
 
   const setSession = (email: string) => {
-    localStorage.setItem("userEmail", email);
+    sessionStorage.setItem("userEmail", email);
   };
 
   const setSessionId = (id: number) => {
-    localStorage.setItem("userId", id.toString());
+    sessionStorage.setItem("userId", id.toString());
   };
 
   const handleSubmit = async (e: any) => {
@@ -68,17 +69,17 @@ const Login = () => {
       setErrors({
         ...errors,
         password:
-          "Password must be at least 8 characters and contain 2 letters, 2 numbers, and 2 symbols",
+          "Password should have least 2 alphabets,1 number, 1 uppercase alphabet, 1 special character",
       });
       return;
     }
 
     try {
       const res = await axios.post(
-        "http://localhost:3000/buyer/login",
+        `http://localhost:3000/manager/signin`,
         {
-          BuyerEmail: email,
-          BuyerPassword: password,
+          email: email,
+          password: password,
         },
         { timeout: 5000 }
       );
@@ -86,13 +87,13 @@ const Login = () => {
       if (res.data) {
         setSession(email);
         setSessionId(res.data.id);
-        router.push("/buyer/home");
+        router.push("/home");
       } else {
-        setErrors({ ...errors, error: "Invalid email id and password" });
+        setErrors({ ...errors, error: "Invalid email id and password 1" });
       }
     } catch (error) {
       console.log(error);
-      setErrors({ ...errors, error: "Invalid email id and password" });
+      setErrors({ ...errors, error: "Invalid email id and password 2" });
     }
   };
 
@@ -104,7 +105,7 @@ const Login = () => {
     <Layout>
       <div className="bg-gray-100 min-h-screen pt-20">
         <form method="POST" onSubmit={handleSubmit}>
-          <h1 className="text-4xl font-bold text-center">Login page</h1>
+          <h2 className="mt-10 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Signin </h2>
 
           <div className="mt-8 max-w-md mx-auto relative z-0">
             {errors.error && (
@@ -116,9 +117,9 @@ const Login = () => {
 
           <div className="mt-8 max-w-md mx-auto relative z-0">
             <input
-              className={`block py-2.5 px-0 w-full text-sm text-black bg-transparent border-0 border-b-2 border-gray-300 appearance-none  focus:outline-none focus:ring-0 focus:border-blue-600 peer ${
-                errors.email && "border-red-500"
-              }`}
+          className={`block py-2.5 px-0 w-full text-base text-gray-800 bg-transparent border-0 border-b-2 border-indigo-500 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-700 peer ${
+            errors.email && "border-red-500"
+          }`}
               type="email"
               placeholder=""
               id="email"
@@ -128,7 +129,7 @@ const Login = () => {
             />
             <label
               htmlFor="email"
-              className="absolute text-sm font-semibold text-black duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
+              className="absolute text-sm font-semibold text-black duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-indigo-600 peer-focus:dark:text-indigo-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
             >
               Email
             </label>
@@ -139,7 +140,7 @@ const Login = () => {
 
           <div className="mt-8 max-w-md mx-auto relative z-0">
             <input
-              className={`block py-2.5 px-0 w-full text-sm text-black bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-blue-600 peer${
+              className={`block py-2.5 px-0 w-full text-sm text-black bg-transparent border-0 border-b-2 border-gray-300 appearance-none focus:outline-none focus:ring-0 focus:border-indigo-600 peer${
                 errors.password && "border-red-500"
               }`}
               type={showPassword ? "text" : "password"}
@@ -151,7 +152,7 @@ const Login = () => {
             />
             <label
               htmlFor="password"
-              className="absolute text-sm font-semibold text-black duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-blue-600 peer-focus:dark:text-blue-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
+              className="absolute text-sm font-semibold text-black duration-300 transform -translate-y-6 scale-75 top-3 -z-10 origin-[0] peer-focus:start-0 peer-focus:text-indigo-600 peer-focus:dark:text-indigo-500 peer-placeholder-shown:scale-100 peer-placeholder-shown:translate-y-0 peer-focus:scale-75 peer-focus:-translate-y-6 rtl:peer-focus:translate-x-1/4 rtl:peer-focus:left-auto"
             >
               Password
             </label>
@@ -177,9 +178,9 @@ const Login = () => {
           <div className="mt-8 max-w-md mx-auto">
             <button
               type="submit"
-              className="w-full px-4 py-2 tracking-wide text-white transition-colors duration-200 transform bg-blue-500 rounded hover:bg-blue-400 focus:outline-none focus:bg-blue-400"
+              className="flex w-full justify-center rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
             >
-              Login
+              Signin
             </button>
           </div>
         </form>
@@ -189,4 +190,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default Signin;

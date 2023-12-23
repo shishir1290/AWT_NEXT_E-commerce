@@ -1,25 +1,38 @@
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
-import React from "react";
-
-import Image from 'next/image';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import Layout from "@/components/layout";
 
-const index = () => {
+const ManagerProfile = () => {
+  const [managerInfo, setManagerInfo] = useState({});
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await axios.get('http://localhost:3000/manager/profile', {
+          withCredentials: true,
+        });
+        const data = res.data;
+        setManagerInfo(data);
+        console.log(data);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    fetchData();
+  }, []); // Empty dependency array ensures the effect runs once on mount
+
   return (
     <Layout>
-    <div className="bg-gray-100 min-h-screen">
-      
-      Profile
-      <Image
-        src={`https://i.ibb.co/prf3kvv/Logo.png`}
-        width={500}
-        height={500}
-        alt="Picture of the author"
-      />
-    </div>
+      <div className='m-6 p-4'>
+        <h1 className='text-4xl font-bold mb-4'>Manager Profile</h1>
+        <div className='mb-4 p-4 border rounded'>
+          <p className='text-lg font-semibold mb-2'>Welcome, {managerInfo.manager}!</p>
+          {/* Display other manager profile information here */}
+        </div>
+      </div>
     </Layout>
   );
 };
 
-export default index;
+export default ManagerProfile;

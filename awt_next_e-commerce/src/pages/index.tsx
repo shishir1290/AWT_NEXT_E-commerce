@@ -11,13 +11,13 @@ const Page: NextPageWithLayout = () => {
   if (router.query) {
     rout = JSON.stringify(router.query);
   } else {
-    rout = 'buyer/home'; // Fix the typo here, and use single quotes for the string
+    rout = ''; // Fix the typo here, and use single quotes for the string
   }
 
   useEffect(() => {
-    // Redirect to '/buyer/home' only if the current route is not '/buyer/home'
-    if (router.pathname !== '/buyer/home') {
-      router.push('/buyer/home');
+    // Redirect to '/manager/home' only if the current route is not '/manager/home'
+    if (router.pathname !== '/manager/signin') {
+      router.push('/manager/signin');
     }
   }, [router.pathname]); // Run the effect whenever the pathname changes
 

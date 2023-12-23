@@ -2,7 +2,6 @@ import React from 'react';
 import useSWR, { SWRResponse } from 'swr';
 import Navbar, { NavbarProps } from './navbar';
 import Footer from './footer';
-import Sidebar from './sidebar';
 
 interface NavigationData {
   links: NavbarProps['links']; // Use the same type as in NavbarProps
@@ -20,7 +19,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
     <>
       <Navbar links={data?.links || []} />
-      <Sidebar />
+      
       <main>{children}</main>
       <Footer/>
     </>

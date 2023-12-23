@@ -1,8 +1,9 @@
 // Import necessary modules
-import React, { useEffect, useRef, useState } from "react";
+import React, { use, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
 import Link from "next/link";
+import { useRouter } from "next/router";
 
 // Define interfaces
 interface NavbarLink {
@@ -17,31 +18,33 @@ export interface NavbarProps {
 
 // Navbar component
 const Navbar: React.FC<NavbarProps> = ({ links }) => {
+
+  const router = useRouter();
   // State variables
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  const [navbarUrl, setNavbarUrl] = useState('manager/signin');
   const [userInfo, setUserInfo] = useState<{
-    buyerimage: string;
-    buyerFirstName: string;
-    buyerLastName: string;
-    buyerEmail: string;
+    managerimage: string;
+    managerEmail: string;
   } | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const profileDropdownRef = useRef<HTMLDivElement>(null);
 
   // Fetch user data from NestJS
   const fetchData = async () => {
-    const userEmailFromLocalStorage = localStorage.getItem("userEmail");
-    setUserEmail(userEmailFromLocalStorage);
+    const userEmailFromsessionStorage = sessionStorage.getItem("userEmail");
+    setUserEmail(userEmailFromsessionStorage);
 
-    if (userEmailFromLocalStorage) {
-      const userIdString = localStorage.getItem("userId");
+    if (userEmailFromsessionStorage) {
+      const userIdString = sessionStorage.getItem("userId");
       const userId = userIdString ? parseInt(userIdString, 10) : null;
 
       if (userId != null) {
         try {
-          const res = await axios.get(`http://localhost:3000/buyer/${userId}`);
+          const res = await axios.get(`http://localhost:3000/manager/${userId}`);
           setUserInfo(res.data); // Set user information directly
         } catch (error) {
           console.error("Error fetching user information:", error);
@@ -60,7 +63,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
 
   // Construct the user profile picture URL
   const imageUrl = userInfo
-    ? `http://localhost:3000/uploads/${userInfo.buyerimage}`
+    ? `http://localhost:3000/uploads/${userInfo.managerimage}`
     : "";
 
   const userProfilePicture =
@@ -97,14 +100,24 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
     };
   }, []);
 
+
+  useEffect(() => {
+    const signinAuth = sessionStorage.getItem("userEmail")
+
+    if (signinAuth == null) {
+      setNavbarUrl("signin")
+    } else {
+      setNavbarUrl("../home")
+    }
+  }, [])
   // Return JSX for the Navbar component
   return (
-    <nav className="bg-gray-800 sticky top-0 w-full z-50">
+    <nav className="bg-cyan-800 sticky top-0 w-full z-50">
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo and Brand Name */}
-        <Link href="/buyer/home" className="flex flex-wrap items-center">
+        <Link href={navbarUrl} className="flex flex-wrap items-center">
           <Image
-            src="https://i.ibb.co/sCxv3Td/Logo.png"
+            src="https://i.ibb.co/vDsjNfY/Logo.png"
             width={35}
             height={35}
             alt="Logo"
@@ -115,42 +128,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
         </Link>
 
         {/* Search bar and Links */}
-        <div className="w-full mt-2 md:w-9/12 md:mt-0 md:flex md:justify-between">
-          {/* Search Form */}
-          <form className="w-full md:w-6/12">
-            <div className="relative">
-              <div className="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                <svg
-                  className="w-4 h-4 text-gray-500 dark:text-gray-400"
-                  aria-hidden="true"
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="2"
-                    d="M19 19l-4-4m0-7A7 7 0 1 0 1 8a7 7 0 0 0 14 0Zm0 5a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
-                  />
-                </svg>
-              </div>
-              <input
-                type="search"
-                id="default-search"
-                className="block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                placeholder="Search Products..."
-                required
-              />
-              <button
-                type="submit"
-                className="text-white absolute end-2.5 bottom-2.5 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-              >
-                Search
-              </button>
-            </div>
-          </form>
+        
 
           {/* Profile Links */}
           <div className="md:flex md:items-center">
@@ -159,7 +137,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
               <div className="relative md:ml-4" ref={profileDropdownRef}>
                 <button
                   type="button"
-                  className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+                  className="flex text-sm bg-cyan-800 rounded-full md:me-0 focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-600"
                   id="user-menu-button"
                   aria-expanded={isProfileMenuOpen}
                   onClick={handleProfileToggle}
@@ -173,49 +151,26 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
                 </button>
                 {/* Dropdown menu */}
                 <div
-                  className={`${
-                    isProfileMenuOpen ? "block" : "hidden"
-                  } absolute mt-2 w-48 bg-white rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600`}
+                  className={`${isProfileMenuOpen ? "block" : "hidden"
+                    } absolute mt-2 w-48 bg-white rounded-lg shadow-lg dark:bg-cyan-700 dark:divide-cyan-600`}
                   id="user-dropdown"
                   ref={profileDropdownRef}
                 >
-                  <div className="px-4 py-3">
-                    <span className="block text-sm text-white dark:text-white">
-                      {userInfo?.buyerFirstName || "User"} {userInfo?.buyerLastName || "Name"}
-                    </span>
-                    <span className="block text-sm text-white truncate dark:text-gray-400">
-                      {userInfo?.buyerEmail || "example@gmail.com"}
-                    </span>
-                  </div>
+                  
                   <ul className="py-2" aria-labelledby="user-menu-button">
                     <li>
                       <Link
-                        href="/buyer/profile"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                        href="/manager/profile"
+                        className="block px-4 py-2 text-sm text-cyan-700 hover:bg-cyan-100 dark:hover:bg-cyan-600 dark:text-cyan-200 dark:hover:text-white"
                       >
                         Profile
                       </Link>
                     </li>
+                    
                     <li>
                       <Link
-                        href="/settings"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                      >
-                        Settings
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/orders"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
-                      >
-                        Orders
-                      </Link>
-                    </li>
-                    <li>
-                      <Link
-                        href="/buyer/signout"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                        href="/manager/signout"
+                        className="block px-4 py-2 text-sm text-cyan-700 hover:bg-cyan-100 dark:hover:bg-cyan-600 dark:text-cyan-200 dark:hover:text-white"
                       >
                         Sign out
                       </Link>
@@ -228,7 +183,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
               <div className="md:ml-4 relative" ref={dropdownRef}>
                 <button
                   type="button"
-                  className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
+                  className="flex text-sm bg-cyan-800 rounded-full md:me-0 focus:ring-4 focus:ring-cyan-300 dark:focus:ring-cyan-600"
                   id="user-menu-button"
                   onClick={handleToggle}
                 >
@@ -242,27 +197,26 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
                     alt="user photo"
                   />
                 </button>
-                {/* Dropdown menu for login and signup */}
+                {/* Dropdown menu for signin and signup */}
                 <div
-                  className={`${
-                    isMenuOpen ? "block" : "hidden"
-                  } absolute mt-2 w-48 bg-white rounded-lg shadow-lg dark:bg-gray-700 dark:divide-gray-600 z-50`}
+                  className={`${isMenuOpen ? "block" : "hidden"
+                    } absolute mt-2 w-48 bg-white rounded-lg shadow-lg dark:bg-cyan-700 dark:divide-cyan-600 z-50`}
                   id="user-dropdown"
                   ref={dropdownRef}
                 >
                   <ul className="py-2 z-50" aria-labelledby="user-menu-button">
                     <li>
                       <Link
-                        href="/buyer/login"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                        href="/manager/signin"
+                        className="block px-4 py-2 text-sm text-cyan-700 hover:bg-cyan-100 dark:hover:bg-cyan-600 dark:text-cyan-200 dark:hover:text-white"
                       >
-                        Login
+                        Signin
                       </Link>
                     </li>
                     <li>
                       <Link
-                        href="/buyer/signup"
-                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
+                        href="/manager/signup"
+                        className="block px-4 py-2 text-sm text-cyan-700 hover:bg-cyan-100 dark:hover:bg-cyan-600 dark:text-cyan-200 dark:hover:text-white"
                       >
                         Signup
                       </Link>
@@ -272,23 +226,9 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
               </div>
             )}
 
-            {/* Create cart button */}
-            <div className="md:ml-4 pl-12">
-              <button
-                type="button"
-                className="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300 dark:focus:ring-gray-600"
-                id="cart-button"
-                onClick={() => {
-                  // Add your logic to open the cart or navigate to the cart page
-                  console.log("Cart button clicked!");
-                }}
-              >
-                <span className="text-4xl">🛒</span>
-              </button>
-            </div>
+
           </div>
         </div>
-      </div>
     </nav>
   );
 };
