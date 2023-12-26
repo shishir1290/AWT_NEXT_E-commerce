@@ -67,7 +67,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
     : "";
 
   const userProfilePicture =
-    imageUrl || "https://www.svgrepo.com/download/192244/man-user.svg";
+    imageUrl || "https://i.ibb.co/PFHmYPL/profile.png";
 
   // Toggle handlers
   const handleToggle = () => {
@@ -192,7 +192,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
                     className="w-12 h-12 rounded-full"
                     src={
                       userProfilePicture ||
-                      "https://www.svgrepo.com/download/192244/man-user.svg"
+                      "https://i.ibb.co/PFHmYPL/profile.png"
                     }
                     alt="user photo"
                   />

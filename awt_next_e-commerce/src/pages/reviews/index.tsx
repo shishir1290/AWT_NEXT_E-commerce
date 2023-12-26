@@ -33,27 +33,24 @@ const Index = () => {
 
   return (
 <Layout>
-  <div className='container mx-auto my-8 p-6 bg-white shadow-lg rounded-md'>
+  <div className='container mx-auto my-8 bg-white shadow-lg rounded-md'>
     <h1 className='text-4xl font-bold text-center text-gray-800 mb-6'>Reviews</h1>
-    <ul>
-      {review.map((review, index) => (
-        <li key={index} className='mb-6 p-4 border border-gray-300 rounded-md'>
-          <div className='flex flex-col lg:flex-row justify-between items-center'>
-            <div className='mb-2 lg:mb-0'>
-              <span className='text-lg font-semibold'>ID: {review.id}</span> |
-              <span className='text-lg font-semibold'>Buyer: {review.buyer}</span>
-            </div>
-            <div className='mt-2 lg:mt-0 lg:ml-4'>
-              <p className='text-gray-700'>Product: {review.product}</p>
-              <p className='text-gray-600'>Review: {review.review}</p>
-            </div>
-          </div>
-        </li>
-      ))}
-    </ul>
+    {review.map((review, index) => (
+      <div key={index} className='mb-6 p-4 border border-gray-300 rounded-md'>
+        <div className='mb-2'>
+          <span className='text-lg font-semibold'>ID: {review.id}</span> |
+          <span className='text-lg font-semibold'>Buyer: {review.buyer}</span>
+        </div>
+        <div className='mt-2'>
+          <p className='text-gray-700'>
+            <span className='font-semibold'>Product:</span> {review.product}
+          </p>
+          <p className='text-gray-600'>Review: {review.review}</p>
+        </div>
+      </div>
+    ))}
   </div>
 </Layout>
-
 
 
   );
