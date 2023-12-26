@@ -63,12 +63,11 @@ export default function Page() {
                       href={`/products/showproduct/${product.id}`}
                       as={`/products/showproduct/${product.id}`}
                     >
-                      <Image
+                      <img
                         src={`http://localhost:3000/product/getImages/${product.id}`}
                         alt={product.product_name}
                         width={300}
                         height={200}
-                        objectFit="cover"
                       />
                     </Link>
                   </div>

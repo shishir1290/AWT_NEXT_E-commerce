@@ -14,40 +14,44 @@ const UserProfile = () => {
   const [userPhone, setUserPhone] = useState<string | null>(null);
   const [userAddress, setUserAddress] = useState<string | null>(null);
   const [showPopup, setShowPopup] = useState(false);
+  const [userProfilePicture, setUserProfilePicture] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState(null);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
-      let accessToken;
-      if (sessionStorage.getItem("access_token") !== null) {
-        accessToken = sessionStorage.getItem("access_token");
-      } else if (localStorage.getItem("access_token") !== null) {
-        accessToken = localStorage.getItem("access_token");
-      } else {
+      const accessToken = sessionStorage.getItem("access_token") || localStorage.getItem("access_token");
+
+      if (!accessToken) {
         console.error("Access token not found.");
         window.location.href = "/buyer/login";
         return;
       }
 
-      let decodedToken = accessToken
-        ? (jwt.decode(accessToken) as JwtPayload)
-        : null;
+      const decodedToken = jwt.decode(accessToken) as JwtPayload;
 
       if (decodedToken) {
-        const buyerEmail = decodedToken.email as string;
         const id = parseInt(decodedToken.sub || "", 10);
-        const buyerFirstName = decodedToken.firstName as string;
-        const buyerLastName = decodedToken.lastName as string;
-        const buyerimage = `http://localhost:3000/buyer/getImages/${id}`;
-        const buyerPhone = decodedToken.phoneNo as string;
-        const buyerAddress = decodedToken.address as string;
 
-        setUserEmail(buyerEmail);
+        const buyerImage = `http://localhost:3000/buyer/getImages/${id}`;
+
+        const fetchUserData = async () => {
+          try {
+            const res = await axios.get(`http://localhost:3000/buyer/${id}`);
+            if (res.data) {
+              setUserFirstName(res.data.buyerFirstName);
+              setUserLastName(res.data.buyerLastName);
+              setUserEmail(res.data.buyerEmail);
+              setUserAddress(res.data.buyerAddresses);
+              setUserPhone(res.data.buyerPhoneNo);
+            }
+          } catch (error) {
+            console.error("Error fetching user data:", error);
+          }
+        };
+
         setUserId(id);
-        setUserFirstName(buyerFirstName);
-        setUserLastName(buyerLastName);
-        setUserImage(buyerimage);
-        setUserPhone(buyerPhone);
-        setUserAddress(buyerAddress);
+        setUserImage(buyerImage);
+        fetchUserData();
       } else {
         window.location.href = "/buyer/login";
       }
@@ -62,32 +66,28 @@ const UserProfile = () => {
     setShowPopup(false);
   };
 
-  const [selectedFile, setSelectedFile] = useState(null);
-
-  const handleFileChange = async (e:any) => {
+  const handleFileChange = async (e: any) => {
     const file = e.target.files?.[0];
     if (file) {
-      setSelectedFile(file); // Set the selected file
+      setSelectedFile(file);
 
       try {
         const formData = new FormData();
         formData.append("BuyerImage", file);
 
         const res = await axios.patch(
-          `http://localhost:3000/buyer/update/${userId}`,
+          `http://localhost:3000/buyer/updateImage/${userId}`,
           formData,
           {
             headers: {
               "Content-Type": "multipart/form-data",
+              "Authorization": `Bearer ${sessionStorage.getItem("access_token")}`,
             },
-            withCredentials: true,
           }
         );
 
         if (res.data) {
-          // Update the userImage state with the URL from the response, if available
-          setUserImage(res.data.imageUrl || URL.createObjectURL(file));
-          console.log("File updated successfully:", res.data);
+          setUserImage(res.data.imageUrl || userImage);
         }
 
         setShowPopup(false);
@@ -98,18 +98,8 @@ const UserProfile = () => {
   };
 
   useEffect(() => {
-    if (selectedFile) {
-      // Update the userImage state to show the selected file temporarily
-      setUserImage(URL.createObjectURL(selectedFile));
-    }
-  }, [selectedFile]);
-  
-  
-
-  const userProfilePicture =
-    userImage || "https://www.svgrepo.com/download/192244/man-user.svg";
-
-
+    setUserProfilePicture(userImage || "https://www.svgrepo.com/download/192244/man-user.svg");
+  }, [userImage]);
 
 
   return (
@@ -121,14 +111,16 @@ const UserProfile = () => {
               className="mx-auto rounded-full overflow-hidden bg-gray-200 w-48 h-48 border-4 border-white cursor-pointer relative group"
               onClick={handleImageClick}
             >
-              <Image
-                src={userProfilePicture}
+              {userProfilePicture && (  
+              <img 
+                src={userProfilePicture ? userImage || "": "https://www.svgrepo.com/download/192244/man-user.svg"}
                 alt={userFirstName || ""}
                 width={300}
                 height={200}
-                objectFit="cover"
+              
                 className="object-cover w-full h-full"
               />
+              )}
               <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                 <p className="text-white font-semibold bg-black bg-opacity-75 p-2 rounded-md">
                   Edit

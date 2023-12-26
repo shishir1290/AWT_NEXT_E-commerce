@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import axios from "axios";
 import Link from "next/link";
 
@@ -166,7 +165,7 @@ const Sidebar = () => {
       >
         <div className="px-6">
           <a href="/buyer/home" className="flex flex-wrap items-center">
-            <Image
+            <img
               src="https://i.ibb.co/sCxv3Td/Logo.png"
               width={35}
               height={35}

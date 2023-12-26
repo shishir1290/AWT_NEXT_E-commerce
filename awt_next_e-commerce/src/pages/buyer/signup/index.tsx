@@ -1,18 +1,17 @@
-import Footer from "@/components/footer";
-import Navbar from "@/components/navbar";
+import React, { useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
-import React, { useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
 import Layout from "@/components/layout";
 import { faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
-import { send } from "process";
 
 const Signup = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
-  
+  const [verificationCode, setVerificationCode] = useState("");
+  const [isVerificationModalOpen, setIsVerificationModalOpen] = useState(false);
+
   const [formdata, setFormdata] = useState({
     firstname: "",
     lastname: "",
@@ -25,7 +24,7 @@ const Signup = () => {
     buyerImage: null,
   });
   const [error, setError] = useState("");
-  const [validationErrors, setValidationErrors] = useState({}); // New state for validation errors
+  const [validationErrors, setValidationErrors] = useState({});
 
   const {
     firstname,
@@ -39,16 +38,14 @@ const Signup = () => {
     buyerImage,
   } = formdata;
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const onChange = (e: any) => {
     if (
       e.target.type === "file" &&
       e.target.files &&
       e.target.files.length > 0
     ) {
-      // Use e.target.files to get the selected file
       setFormdata({ ...formdata, [e.target.name]: e.target.files[0] });
     } else {
-      // For other input types (text, radio, etc.), handle as usual
       setFormdata({ ...formdata, [e.target.name]: e.target.value });
     }
   };
@@ -103,20 +100,62 @@ const Signup = () => {
     return errors;
   };
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const validationErrors = validateForm();
+  // ------------------------------------------------------------------------------------
 
-    if (Object.keys(validationErrors).length > 0) {
-      setValidationErrors(validationErrors);
-      return;
-    }
-    if (formdata) {
-      // const resMail = sendMail(email);
-    }
-
+  const openVerificationModal = async () => {
+    setIsVerificationModalOpen(true);
+    // Send a request to generate and send the verification code to the user's email
+    // This should be done on the server side
     try {
-      // Use FormData to handle file uploads
+      const resEmail = await axios.get(`http://localhost:3000/buyer/sendEmail/${email}`);
+      if (resEmail) {
+        console.log("Verification code sent:", resEmail.data.code);
+        // No need to call handleVerificationSubmit here; it will be called from the modal
+      } else {
+        setError("This email is not valid");
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      setError("Error sending email");
+    }
+  };
+
+  //----------------------------------------------------------------------------------------------
+
+  const closeVerificationModal = () => {
+    setIsVerificationModalOpen(false);
+  };
+
+  //----------------------------------------------------------------------------------------------
+
+  const handleVerificationSubmit = async () => {
+    console.log("verificationCode", verificationCode);
+
+      const verifyEmail = await axios.get(
+        `http://localhost:3000/buyer/verifyEmail?email=${email}&code=${verificationCode}`
+      );
+      console.log("verifyEmail", verifyEmail.data);
+
+      if (verifyEmail) {
+        handleSignup(); // Move the handleSignup call here, after successful verification
+        closeVerificationModal(); // Close the modal after successful verification
+      } else {
+        setError("Verification code is required");
+      }
+  };
+
+  //--------------------------------------------------------------------------------------
+
+  const handleSubmit = async (e: any) => {
+    e.preventDefault();
+
+  };
+
+  //--------------------------------------------------------------------------------------
+
+  const handleSignup = async () => {
+    closeVerificationModal();
+    try {
       const formData = new FormData();
       formData.append("BuyerFirstName", firstname);
       formData.append("BuyerLastName", lastname);
@@ -137,7 +176,7 @@ const Signup = () => {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data", // Set content type for file upload
+            "Content-Type": "multipart/form-data",
           },
         }
       );
@@ -147,19 +186,19 @@ const Signup = () => {
       } else {
         setError(res.data.message);
       }
-    } catch (error) {
-      // Axios error handling
-      if ((error as any).isAxiosError && (error as any).response) {
-        // The request was made and the server responded with a status code
-        // that falls out of the range of 2xx
-        setError(`Error: ${(error as any).response.data.message}`);
+    } catch (error: any) {
+      if (error.isAxiosError && error.response) {
+        setError(`Error: ${error.response.data.message}`);
       } else {
-        // Something happened in setting up the request that triggered an Error
-        console.error("Error:", (error as any).message);
+        console.error("Error:", error.message);
         setError("An error occurred during signup.");
       }
     }
   };
+
+  // function togglePasswordVisibility(event: MouseEvent<SVGSVGElement, MouseEvent>): void {
+  //   throw new Error("Function not implemented.");
+  // }
 
   const togglePasswordVisibility = () => {
     setShowPassword(!showPassword);
@@ -354,7 +393,6 @@ const Signup = () => {
             )}
           </div>
           {/* Password */}
-
           {/* Password */}
           <div className="mt-8 max-w-md mx-auto relative">
             <label className="text-sm font-bold text-gray-700 tracking-wide">
@@ -388,7 +426,6 @@ const Signup = () => {
           </div>
           {/* Error Message */}
           {error && <p className="text-red-500 text-sm mt-4">{error}</p>}
-
           {/* Image */}
           <div className="mt-8 max-w-md mx-auto">
             <label
@@ -415,19 +452,50 @@ const Signup = () => {
               </label>
             </div>
             <p className="mt-1 text-sm text-black" id="file_input_help">
-              PNG, JPG, JPEG 
+              PNG, JPG, JPEG
             </p>
           </div>
-
           {/* Submit Button */}
           <div className="mt-10 max-w-md mx-auto">
             <button
               type="submit"
+              onClick={openVerificationModal}
               className="w-full px-4 py-2 tracking-wide font-bold text-black hover:text-white border-2 border-green-700 bg-emerald-200 hover:bg-green-800 focus:ring-4 focus:outline-none focus:ring-green-300 rounded-lg text-sm text-center me-2 mb-2 "
             >
               Signup
             </button>
           </div>
+          {/* Verification Code Modal */}
+          {isVerificationModalOpen && (
+            <div className="fixed inset-0 overflow-y-auto z-50 flex items-center justify-center">
+              <div className="absolute inset-0 bg-gray-500 opacity-75"></div>
+              <div className="relative bg-white p-4 rounded-md max-w-md mx-auto">
+                <h2 className="text-2xl font-bold mb-4">Verification Code</h2>
+                <input
+                  type="text"
+                  placeholder="Enter verification code"
+                  className="w-full p-2 border border-gray-300 rounded-md mb-4"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                />
+                {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+                <div className="flex justify-end">
+                  <button
+                    className="px-4 py-2 mr-2 bg-gray-300 hover:bg-gray-400 rounded-md"
+                    onClick={closeVerificationModal}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    className="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-md"
+                    onClick={handleVerificationSubmit}
+                  >
+                    Submit
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </form>
       </div>
     </Layout>

@@ -3,7 +3,6 @@ import axios from "axios";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import React, { useEffect, useState } from "react";
-import Image from "next/image";
 
 interface Products {
   id: string;
@@ -37,9 +36,13 @@ const SearchProductByCategory: React.FC<SearchProductProps> = () => {
         console.log("API Response:", res);
 
         const fetchedProducts = res.data;
+        if(fetchedProducts.length > 0) {
         setIsLoading(false);
         setOriginalProducts(fetchedProducts);
         setProducts(fetchedProducts);
+        }else{
+          console.error("Product not found");
+        }
       } catch (error) {
         console.error("Error fetching product details", error);
         setIsLoading(false);
@@ -140,12 +143,11 @@ const SearchProductByCategory: React.FC<SearchProductProps> = () => {
                       href={`/products/showproduct/[productId]`}
                       as={`/products/showproduct/${product.id}`}
                     >
-                      <Image
+                      <img
                         src={`http://localhost:3000/product/getImages/${product.id}`}
                         alt={product.product_name}
                         width={300}
                         height={200}
-                        objectFit="cover"
                       />
                     </Link>
                   </div>

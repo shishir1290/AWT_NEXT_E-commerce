@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import axios from "axios";
 import Link from "next/link";
 import jwt from "jsonwebtoken";
 import { JwtPayload } from "jsonwebtoken";
 import Cookies from "js-cookie";
 import { useCart } from "./cartContext";
-import { useRouter } from 'next/router';
-
+import { useRouter } from "next/router";
 
 interface NavbarLink {
   url: string;
@@ -29,6 +27,7 @@ interface CartItem {
 
 const Navbar: React.FC<NavbarProps> = ({ links }) => {
   const router = useRouter();
+  const [accessToken, setAccessToken] = useState<string | null>(null);
   // State variables
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -52,11 +51,15 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
   //---------------------------------------------------------------------------------
 
   const fetchData = async () => {
-    let accessToken;
-
-    accessToken =
+    const accessToken =
       sessionStorage.getItem("access_token") ||
       localStorage.getItem("access_token");
+
+      setAccessToken(accessToken);
+
+      if(accessToken === null){
+        console.error("Access token is null.");
+      }
 
     try {
       let decodedToken;
@@ -152,8 +155,6 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
       ? JSON.parse(Cookies.get("cart")!)
       : [];
 
-    console.log("Existing Cart:", existingCart);
-
     return existingCart;
   };
 
@@ -191,10 +192,17 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
     const searchInput = document.getElementById(
       "default-search"
     ) as HTMLInputElement;
-    console.log(searchInput.value);
 
     // Use the router to navigate to the search result page
     router.push(`/products/searchResult/${searchInput.value}`);
+  };
+
+  const checkoutOrder = () => {
+    if (accessToken) {
+      router.push(`/orders/checkout`);
+    } else {
+      router.push(`/buyer/login`);
+    }
   };
 
   return (
@@ -202,7 +210,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
       <div className="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-3">
         {/* Logo and Brand Name */}
         <Link href="/buyer/home" className="flex flex-wrap items-center">
-          <Image
+          <img
             src="https://i.ibb.co/sCxv3Td/Logo.png"
             width={35}
             height={35}
@@ -303,7 +311,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
                     </li>
                     <li>
                       <Link
-                        href="/settings"
+                        href="/buyer/settings"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                       >
                         Settings
@@ -311,7 +319,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
                     </li>
                     <li>
                       <Link
-                        href="/orders"
+                        href="/buyer/order"
                         className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-white"
                       >
                         Orders
@@ -437,7 +445,7 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
                         {cartItems.map((item) => (
                           <tr key={item.id} className="mb-4 border-b pb-4">
                             <td className="flex items-center">
-                              <Image
+                              <img
                                 src={`http://localhost:3000/product/getImages/${item.id}`}
                                 alt={item.name}
                                 width={40}
@@ -578,15 +586,14 @@ const Navbar: React.FC<NavbarProps> = ({ links }) => {
 
                   <hr className="w-full h-1 mx-auto bg-gray-100 border-0 rounded md:my-10 dark:bg-gray-700" />
                   {/* Continue Shopping and Checkout buttons inside the sidebar */}
-                  <div className="fixed bottom-0 right-0 bg-slate-200 p-4">
-                    <Link href="/orders/checkout">
+                  <div className="fixed bottom-0 right-0 bg-slate-200 p-4 sm:p-8">
                     <button
                       type="button"
-                      className="bg-blue-500 text-white px-40 py-2 mr-5 rounded-md hover:bg-gray-900"
+                      className="btn bg-blue-500 text-white lg:px-40 lg:py-2 lg:my-5 md:px-6 md:py-2 md:my-3 sm:px-4 sm:py-2 rounded-md hover:bg-gray-900"
+                      onClick={checkoutOrder}
                     >
                       Checkout
                     </button>
-                    </Link>
                   </div>
                 </div>
               </div>

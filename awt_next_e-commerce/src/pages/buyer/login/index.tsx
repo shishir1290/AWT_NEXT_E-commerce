@@ -192,6 +192,14 @@ const Login = () => {
               Remember me
             </label>
           </div>
+          <div className="mt-8 max-w-md mx-auto relative z-0">
+            <a
+              href="/buyer/forgotpassword"
+              className="text-sm text-gray-600 hover:underline hover:text-gray-900"
+            >
+              Forgot Password?
+            </a>
+          </div>
 
           {/* //------------------------------------------------------------------------------ */}
           <div className="mt-8 max-w-md mx-auto">
